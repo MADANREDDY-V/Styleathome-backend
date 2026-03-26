@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -25,13 +26,21 @@ public class SessionCartService {
 
     @Transactional
     public SessionCart getSessionCartByUserId(Long userId) {
-        return sessionCartRepository.findByUserId(userId).orElseGet(() -> {
+        Optional<SessionCart> opt = sessionCartRepository.findByUserId(userId);
+        SessionCart cart = opt.orElseGet(() -> {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
             SessionCart newCart = new SessionCart();
             newCart.setUser(user);
+            newCart.setSessionCartItems(new ArrayList<>());
             return sessionCartRepository.save(newCart);
         });
+
+        if (cart.getSessionCartItems() == null) {
+            cart.setSessionCartItems(new ArrayList<>());
+        }
+
+        return cart;
     }
 
     @Transactional
